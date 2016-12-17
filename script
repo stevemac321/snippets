@@ -1,0 +1,9 @@
+tar ext:4242
+load
+monitor semihosting enable
+break main
+continue
+layout src
+
+
+
