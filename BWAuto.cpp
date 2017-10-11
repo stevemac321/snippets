@@ -25,18 +25,26 @@ void ParseLine(CComPtr<IDispatch> &ptr, string &line)
 		CComVariant varClip(TRUE);
 
 		auto hr = ptr.Invoke1(L"GoToVerse", &varVerse);
-		Sleep(100);
 
 		if (hr == S_OK) {
 			if (OpenClipboard(nullptr)) {
 
-				auto h = GetClipboardData(CF_UNICODETEXT);
-				if (h) 
+				HANDLE h = nullptr;
+				for (int i = 0; i < 1000 && h == nullptr; i++) {
+					h = GetClipboardData(CF_UNICODETEXT);
+				}
+
+				if (h)
 					wprintf(L"%s ", (const wchar_t*)h);
+				else
+					puts("GetClipboardData returned nullptr\n");
 				
 
-				CloseClipboard();		
+				CloseClipboard();	
+			
 			}
+			else
+				printf("OpenClipboard failed %x\n", GetLastError());
 		}
 		
 		word = strtok(nullptr, seps);
@@ -66,6 +74,10 @@ void ParseCommandLine(int argc, char* argv[])
 	{
 		CComPtr<IDispatch> ptr;
 		hr = ptr.CoCreateInstance(L"bibleworks.automation");
+		assert(hr == S_OK);
+
+		CComVariant varClip(TRUE);
+		hr = ptr.Invoke1(L"ClipGoToVerse", &varClip);
 		assert(hr == S_OK);
 
 		if (strcmp(argv[1], "file") == 0) 
