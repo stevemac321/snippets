@@ -204,9 +204,14 @@ public:
 	void ParseFile()
 	{
 		if (m_mode != FILE) {
-			std::wstring verse = m_bw.GetVerse(m_line);
-			if (verse != L"")
-				std::wcout << verse << "\n";
+			auto v = ParseMultiVerseRef(const_cast<char*>(m_line.c_str()));
+			for (auto s : v) {
+				std::wstring verse = m_bw.GetVerse(s);
+				if (verse != L"")
+					std::wcout << verse << " ";
+			}
+
+			std::cout << "\n";
 		}
 		else {
 			std::fstream fs;
@@ -215,7 +220,7 @@ public:
 			fs.open(m_file);
 			if (fs.is_open()) {
 				while (std::getline(fs, line))
-					ParseLine(line);
+						ParseLine(line);
 			}
 		
 			fs.close();
