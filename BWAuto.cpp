@@ -200,7 +200,7 @@ public:
 			}
 			word = strtok(nullptr, seps);
 		}
-		std::wcout << L"\n\n";
+		std::wcout << L"\n";
 	}
 
 	void ParseFile()
@@ -213,7 +213,7 @@ public:
 					std::wcout << verse << " ";
 			}
 
-			std::cout << "\n\n";
+			std::cout << "\n";
 		}
 		else {
 			std::fstream fs;
@@ -222,7 +222,10 @@ public:
 			fs.open(m_file);
 			if (fs.is_open()) {
 				while (std::getline(fs, line))
-					ParseLine(line);
+					if (*line.c_str() == '#')
+						std::cout << line << "\n";
+					else
+						ParseLine(line);
 			}
 
 			fs.close();
