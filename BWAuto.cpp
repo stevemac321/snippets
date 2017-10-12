@@ -50,7 +50,7 @@ private:
 
 class LBCExpandRefs {
 public:
-	enum mode{COMMANDLINE, FILE};
+	enum mode { COMMANDLINE, FILE };
 	void PopulateMap()
 	{
 		const char* books[] = {
@@ -127,7 +127,7 @@ public:
 		if (comma) {
 			*comma = '\0';
 			vVerses.push_back(word);
-			
+
 			++comma;
 
 			char * colon = strstr(word, ":");
@@ -135,7 +135,7 @@ public:
 			++colon;
 			*colon = '\0';
 			strcpy(versebuf, word);
-			
+
 			char *left = colon + 1;
 			char * right = comma;
 			++right;
@@ -160,10 +160,12 @@ public:
 					break;
 				else {
 					++right;
-					char *shift = left + 1;
-					while (*shift != '\0') {
-						*(shift - 1) = *shift;
-						++shift;
+					if (*left != '\0') {
+						char *shift = left + 1;
+						while (*shift != '\0') {
+							*(shift - 1) = *shift;
+							++shift;
+						}
 					}
 					colon = strstr(versebuf, ":");
 					left = colon + 1;
@@ -198,7 +200,7 @@ public:
 			}
 			word = strtok(nullptr, seps);
 		}
-		std::wcout << L"\n";
+		std::wcout << L"\n\n";
 	}
 
 	void ParseFile()
@@ -211,7 +213,7 @@ public:
 					std::wcout << verse << " ";
 			}
 
-			std::cout << "\n";
+			std::cout << "\n\n";
 		}
 		else {
 			std::fstream fs;
@@ -220,9 +222,9 @@ public:
 			fs.open(m_file);
 			if (fs.is_open()) {
 				while (std::getline(fs, line))
-						ParseLine(line);
+					ParseLine(line);
 			}
-		
+
 			fs.close();
 		}
 	}
