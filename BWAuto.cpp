@@ -1,6 +1,15 @@
 // BWAuto.cpp : Defines the entry point for the console application.
 //
+/*
+One Method could be :
 
+goto ?Edit?search&replace
+search for \d +
+under more Options check[x]regular Expression
+hit the ??find all button
+
+close the Dialog, and change to Charstyle with Fontname Linux Biolinum G : sups = 1
+*/
 #include "stdafx.h"
 
 class CBibleworks {
@@ -179,6 +188,19 @@ public:
 	}
 	std::vector<std::string> ParseMultiVerseRef(char * word)
 	{
+		// remove leading #, output num, remove num
+		if (word && *word != '\0' && *word == '#') {
+			std::cout << *word;
+			++word;
+		}
+		if (word && *word != '\0') {
+			std::cout << *word << " ";
+			++word;  // move past #1 etc.
+		}
+
+		while (word && *word != '\0' && !isalnum(*word))
+			++word;
+
 		char * comma = strstr(word, ",");
 
 		if (comma)
@@ -222,10 +244,11 @@ public:
 			fs.open(m_file);
 			if (fs.is_open()) {
 				while (std::getline(fs, line))
-					if (*line.c_str() == '#')
-						std::cout << line << "\n";
-					else
+					if (*line.c_str() == '#') {		
 						ParseLine(line);
+					}
+					else
+						std::cout << line << "\n";
 			}
 
 			fs.close();
