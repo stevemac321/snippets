@@ -131,61 +131,62 @@ public:
 	std::vector<std::string> ParseComma(char * word)
 	{
 		std::vector<std::string> vVerses;
-		char *comma = strstr(word, ",");
 
-		if (comma) {
-			*comma = '\0';
+		std::vector<char*> tokens;
+
+		char *colon = strstr(word, ":");
+		if (colon == nullptr) {
 			vVerses.push_back(word);
-
-			++comma;
-
-			char * colon = strstr(word, ":");
-			char versebuf[30];
-			++colon;
-			*colon = '\0';
-			strcpy(versebuf, word);
-
-			char *left = colon + 1;
-			char * right = comma;
-			++right;
-
-			while (right && !isdigit(*right))
-				++right;
-
-			while (right && *right != '\0') {
-				while (!isdigit(*right))
-					++right;
-				while (isdigit(*right)) {
-					*left = *right;
-					++left;
-					++right;
-				}
-				char c = *right;
-				*right = '\0';
-				strcat(versebuf, left);
-				vVerses.push_back(versebuf);
-
-				if (c == '\0')
-					break;
-				else {
-					++right;
-					if (*left != '\0') {
-						char *shift = left + 1;
-						while (*shift != '\0') {
-							*(shift - 1) = *shift;
-							++shift;
-						}
-					}
-					colon = strstr(versebuf, ":");
-					left = colon + 1;
-				}
-			}
+			return vVerses;
 		}
-		else
-			vVerses.push_back(word);
 
+		// pack up first verse
+		char * p = colon + 1;
+
+		// save first part
+		//p = colon + 1;
+		char c = *p;
+		*p = '\0';
+
+		char bookversecolon[100] = { '\0' };
+		strcpy(bookversecolon, word);
+	
+		// restore
+		*p = c;
+
+		char seps[] = ",";
+		p = strtok(word, seps);
+		vVerses.push_back(p); // the first one is a full verse
+		p = strtok(nullptr, seps);
+
+		while (p != nullptr) {
+			// remove leading non-alnum space
+			while (p && *p != '\0' && !isalnum(*p))
+				++p;
+			// remove trailing non-alnum space
+			char *end = p;
+			while (end && *end != '\0')
+				++end; // goto end
+			// now go back until you hit alnum, null terminate as you go
+			while (end && end > p && !isalnum(*end)) {
+				*end = '\0';
+				--end;
+			}
+			tokens.push_back(p);
+			p = strtok(nullptr, seps);
+		}
+
+		for (auto s : tokens) {
+			// strcat, push_back, restore null after colon
+			strcat(bookversecolon, s);
+			vVerses.push_back(bookversecolon);
+			p = strstr(bookversecolon, ":");
+			++p;
+			*p = '\0';
+		}
 		return vVerses;
 	}
+
 	std::vector<std::string> ParseMultiVerseRef(char * word)
 	{
 		// remove leading #, output num, remove num
