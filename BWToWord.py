@@ -1,0 +1,161 @@
+import win32com
+import win32clipboard
+import sys
+import re
+
+from sys import argv
+from re import split
+from win32com import client
+from win32com.client import Dispatch
+from win32clipboard import OpenClipboard
+from win32clipboard import CloseClipboard
+from win32clipboard import GetClipboardData
+
+class BibleWorksAuto:
+	def __init__(self):
+		self.bw = None
+
+	def Initialize(self):
+		self.bw = client.Dispatch('Bibleworks.Automation')
+		assert(self.bw != None)
+		hr = self.bw.ClipGoToVerse(True)
+		assert(hr == None)
+
+	def GoToVerse(self, verse):
+		return self.bw.GoToVerse(verse)
+
+	#returns string if pass, None if fails
+	def GetVerse(self):
+		handle = OpenClipboard(None)
+		assert(handle == None)
+
+		s = GetClipboardData(win32clipboard.CF_UNICODETEXT)
+		CloseClipboard();
+		return s
+
+class WordAuto:
+	def __init__(self):
+		self.word = None
+		self.doc = None
+		self.sel = None
+
+	def Initialize(self):
+		self.word = client.Dispatch('Word.Application')
+		assert(self.word != None)	
+
+		self.doc = self.word.Documents.Add()
+		assert(self.doc != None)
+
+		self.word.Visible = True
+
+	def PrintToWord(self, verse):
+		self.sel = self.word.Selection
+	#SPLIT VERSE ELSEWHERE; it is not part of Word Automation!!!!
+		#split verse into WTT Deuteronomy 6:4 and the actual verse part
+		#print first part, with colon and space
+		#font = self.sel.get_Font()
+		#font.put_Name("SBL Hebrew")
+		#font.put_size(14.0)
+		#font.put_Bold(1)
+		self.sel.TypeText(verse)
+
+class LBCTextToWord:
+
+	def __init__(self):
+		self.bw = None
+		self.word = None
+
+	def strip_nonalnum_re(self, word):
+		return re.sub(r"^\W+|\W+$", "", word)
+
+	def ParseDashPart(self, bookchap, rest):
+		verses = []
+		dashtoks = rest.split('-')
+	
+		p = dashtoks.pop(0)
+		if(p != None):
+			low = int(p)
+			p = dashtoks.pop(0)
+			if(p != None):
+				hi = int(p)
+				for x in range(low, hi + 1):
+					verses.append(bookchap + str(x))
+
+		return verses
+
+	def PrintCommaVerses(self, bookchap, rest):
+		return None
+
+	def PrintDashedVerses(self, verses):
+		# pop first verse, call GetVerse
+			# get rid of version ASV, KJV
+			# restore dash format on retrieved data, then print without newline, end = ''
+		# loop thru the rest, call GetVerse from BS
+			# split(':') on retrived data, pop last and print just the number, with space
+			# in Word you will make it smaller, maybe we add a special ^ character 
+			# for bulk replace
+		# newline after last
+		for v in verses:
+			self.bw.GoToVerse(v)
+			s = self.bw.GetVerse()
+			self.word.PrintToWord(s)
+
+	def ParseVerse(self, verse):
+		stripped = self.strip_nonalnum_re(verse)
+
+		#split by colon, first part is book and chapter, be sure to add the colon
+		toks = stripped.split(':')
+		bookchap = toks.pop(0)
+		if(bookchap != None):
+			bookchap += ':'
+
+			rest = ''.join(toks)
+			if(re.search('-', rest)):
+				verses = self.ParseDashPart(bookchap, rest)
+				if(verses != None):
+					self.PrintDashedVerses(verses)
+			elif(re.search(',', rest)):
+				self.PrintCommaVerses(bookchap, rest)
+			else:
+				self.bw.GoToVerse(bookchap + rest)
+				s = self.bw.GetVerse()
+				self.word.PrintToWord(s) #break into two calls, set quotation style, set bold on first
+
+	def ParseVerseLine(self, verseline):
+		toks = verseline.split(';')
+		for tok in toks:
+			self.ParseVerse(tok)
+	
+	def ParseFile(self, arg):
+		self.bw = BibleWorksAuto()
+		self.bw.Initialize()
+
+		self.word = WordAuto()
+		self.word.Initialize()
+	
+
+		bv = re.compile('[0-9]+:[0-9]+')
+
+		f = open(arg)
+
+		for line in f:	
+			if('(' not in line):
+				self.PrintNonVerseLine(line)
+			else:
+				toks = line.split('(')
+				last = toks.pop()
+				jline = '('.join(toks)
+				self.word.PrintToWord(jline + '\n')
+				self.ParseVerseLine(last)
+
+		f.close()
+
+	def PrintNonVerseLine(self, line):
+		self.word.PrintToWord(line)
+
+def main():
+	assert(argv[1] != None)
+	lbc = LBCTextToWord()
+	lbc.ParseFile(argv[1])
+
+main()
