@@ -48,15 +48,16 @@ class WordAuto:
 
 		self.word.Visible = True
 
-	def PrintToWord(self, verse):
+	def PrintToWord(self, verse, bold=0):
 		self.sel = self.word.Selection
 	#SPLIT VERSE ELSEWHERE; it is not part of Word Automation!!!!
 		#split verse into WTT Deuteronomy 6:4 and the actual verse part
 		#print first part, with colon and space
-		#font = self.sel.get_Font()
+		font = self.sel.font
 		#font.put_Name("SBL Hebrew")
 		#font.put_size(14.0)
-		#font.put_Bold(1)
+		#font.put_Bold(bold)
+		font.Bold = bold
 		self.sel.TypeText(verse)
 
 class LBCTextToWord:
@@ -96,9 +97,7 @@ class LBCTextToWord:
 			# for bulk replace
 		# newline after last
 		for v in verses:
-			self.bw.GoToVerse(v)
-			s = self.bw.GetVerse()
-			self.word.PrintToWord(s)
+			self.PrintVerse(v + ' ')
 
 	def ParseVerse(self, verse):
 		stripped = self.strip_nonalnum_re(verse)
@@ -117,9 +116,30 @@ class LBCTextToWord:
 			elif(re.search(',', rest)):
 				self.PrintCommaVerses(bookchap, rest)
 			else:
-				self.bw.GoToVerse(bookchap + rest)
-				s = self.bw.GetVerse()
-				self.word.PrintToWord(s) #break into two calls, set quotation style, set bold on first
+				self.PrintVerse(bookchap + rest + ' ')
+
+	def PrintVerse(self, verse):
+		#break into two calls, set quotation style, set bold on first, add colon to first
+		self.bw.GoToVerse(verse)
+		s = self.bw.GetVerse()
+
+		toks = s.split(':')
+		bookchap = toks.pop(0)
+		bookchap += ':'
+		
+		s = ''.join(toks)
+		delim = ' '
+		spaces  = [e+delim for e in s.split(delim) if e]
+
+		v = spaces.pop(0)
+		v = self.strip_nonalnum_re(v)
+
+		bookchap += v + ': '
+		rest = ''.join(spaces)
+
+		self.word.PrintToWord(bookchap, 1) #bold = 1
+		self.word.PrintToWord(rest + ' ')
+		
 
 	def ParseVerseLine(self, verseline):
 		toks = verseline.split(';')
@@ -132,7 +152,6 @@ class LBCTextToWord:
 
 		self.word = WordAuto()
 		self.word.Initialize()
-	
 
 		bv = re.compile('[0-9]+:[0-9]+')
 
@@ -145,7 +164,7 @@ class LBCTextToWord:
 				toks = line.split('(')
 				last = toks.pop()
 				jline = '('.join(toks)
-				self.word.PrintToWord(jline + '\n')
+				self.PrintNonVerseLine(jline + '\n')
 				self.ParseVerseLine(last)
 
 		f.close()
