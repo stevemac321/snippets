@@ -47,18 +47,17 @@ class WordAuto:
 		assert(self.doc != None)
 
 		self.word.Visible = True
+		self.sel = self.word.Selection
+
 
 	def PrintToWord(self, verse, bold=0):
-		self.sel = self.word.Selection
-	#SPLIT VERSE ELSEWHERE; it is not part of Word Automation!!!!
-		#split verse into WTT Deuteronomy 6:4 and the actual verse part
-		#print first part, with colon and space
-		font = self.sel.font
-		#font.put_Name("SBL Hebrew")
-		#font.put_size(14.0)
-		#font.put_Bold(bold)
-		font.Bold = bold
+		self.sel.font.Bold = bold
 		self.sel.TypeText(verse)
+
+	def PrintStyle(self, line, style = 'Normal'):
+		self.sel.style = style
+		self.sel.TypeText(line)
+		self.sel.style = 'Normal'
 
 class LBCTextToWord:
 
@@ -170,7 +169,12 @@ class LBCTextToWord:
 		f.close()
 
 	def PrintNonVerseLine(self, line):
-		self.word.PrintToWord(line)
+		pattern = re.compile('^Chapter [0-9]+:')
+
+		if(re.search(pattern, line)):
+			self.word.PrintStyle(line, 'Heading 1')
+		else:
+			self.word.PrintToWord(line)
 
 def main():
 	assert(argv[1] != None)
