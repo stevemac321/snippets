@@ -49,15 +49,12 @@ class WordAuto:
 		self.word.Visible = True
 		self.sel = self.word.Selection
 
-
-	def PrintToWord(self, verse, bold=0):
+	def PrintToWord(self, line, style = 'Normal', bold = 0):
+		self.sel.Style = style
 		self.sel.font.Bold = bold
-		self.sel.TypeText(verse)
-
-	def PrintStyle(self, line, style = 'Normal'):
-		self.sel.style = style
+		self.sel.font.Size = 12
 		self.sel.TypeText(line)
-		self.sel.style = 'Normal'
+	
 
 class LBCTextToWord:
 
@@ -87,18 +84,52 @@ class LBCTextToWord:
 		return None
 
 	def PrintDashedVerses(self, verses):
-		# pop first verse, call GetVerse
-			# get rid of version ASV, KJV
-			# restore dash format on retrieved data, then print without newline, end = ''
-		# loop thru the rest, call GetVerse from BS
-			# split(':') on retrived data, pop last and print just the number, with space
-			# in Word you will make it smaller, maybe we add a special ^ character 
-			# for bulk replace
-		# newline after last
+		results = []
 		for v in verses:
-			self.PrintVerse(v + ' ')
+			self.bw.GoToVerse(v);
+			s = self.bw.GetVerse()
+			results.append(s)
+		
+		#make one multi-verse line to print		
+		#get the first verse
+		first = results.pop(0)
+
+		toks = first.split(':')
+		bookchap = toks.pop(0) + ':'
+		s = ''.join(toks)
+		delim = ' '
+		spaces  = [e+delim for e in s.split(delim) if e]
+		v = spaces.pop(0)
+		low = int(v)
+		hi = low + len(verses)
+		#bookchap += v + '-' + str(hi-1) + ': '		
+
+		bookchap += ''.join(toks)
+
+		for x in results:
+			toks = x.split(':')
+			first = toks.pop(0)
+			s = ''.join(toks)
+			delim = ' '
+			spaces  = [e+delim for e in s.split(delim) if e]
+			spaces.pop(0)
+			low += 1
+			rest = ' ' + str(low) + ' ' + ''.join(spaces)
+			bookchap += rest
+			
+		self.PrintVerse(bookchap)
 
 	def ParseVerse(self, verse):
+		pattern = re.compile('^#[0-9]+')
+		if(re.search(pattern, verse)):
+			delim = ' '
+			spaces  = [e+delim for e in verse.split(delim) if e]
+			footnum = spaces.pop(0)
+			
+			self.word.PrintToWord('\n')
+			self.word.PrintToWord(footnum, 'Normal', 0)
+			verse = ''.join(spaces)
+
 		stripped = self.strip_nonalnum_re(verse)
 
 		#split by colon, first part is book and chapter, be sure to add the colon
@@ -115,14 +146,14 @@ class LBCTextToWord:
 			elif(re.search(',', rest)):
 				self.PrintCommaVerses(bookchap, rest)
 			else:
-				self.PrintVerse(bookchap + rest + ' ')
+				self.bw.GoToVerse(bookchap + rest)
+				s = self.bw.GetVerse()
+				self.PrintVerse(s + ' ')
 
 	def PrintVerse(self, verse):
-		#break into two calls, set quotation style, set bold on first, add colon to first
-		self.bw.GoToVerse(verse)
-		s = self.bw.GetVerse()
-
-		toks = s.split(':')
+		#break into two calls, set bold on first, add colon to first
+		verse = verse[4:]
+		toks = verse.split(':')
 		bookchap = toks.pop(0)
 		bookchap += ':'
 		
@@ -136,8 +167,8 @@ class LBCTextToWord:
 		bookchap += v + ': '
 		rest = ''.join(spaces)
 
-		self.word.PrintToWord(bookchap, 1) #bold = 1
-		self.word.PrintToWord(rest + ' ')
+		self.word.PrintToWord(bookchap, 'Normal', 1) 
+		self.word.PrintToWord(rest + ' ', 'Normal', 0)
 		
 
 	def ParseVerseLine(self, verseline):
@@ -170,9 +201,12 @@ class LBCTextToWord:
 
 	def PrintNonVerseLine(self, line):
 		pattern = re.compile('^Chapter [0-9]+:')
+		title = re.compile('^London Baptist Confession of Faith 1689')
 
-		if(re.search(pattern, line)):
-			self.word.PrintStyle(line, 'Heading 1')
+		if(re.search(title, line)):
+			self.word.PrintToWord(line, 'Title', 1)
+		elif(re.search(pattern, line)):
+			self.word.PrintToWord(line, 'Heading 1', 1)
 		else:
 			self.word.PrintToWord(line)
 
