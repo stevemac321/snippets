@@ -4,6 +4,11 @@ import sys
 import re
 import fileinput
 
+#Word find
+#\#([0-9]{1,2})
+#word replace
+#\1
+#be sure to set format to superscript
 
 from sys import argv
 from re import split
