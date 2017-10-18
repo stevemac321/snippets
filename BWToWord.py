@@ -2,6 +2,8 @@ import win32com
 import win32clipboard
 import sys
 import re
+import fileinput
+
 
 from sys import argv
 from re import split
@@ -10,6 +12,18 @@ from win32com.client import Dispatch
 from win32clipboard import OpenClipboard
 from win32clipboard import CloseClipboard
 from win32clipboard import GetClipboardData
+
+# utilities
+def split_keep_delims(line, delim):
+	return [e+delim for e in line.split(delim) if e]
+
+def strip_nonalnum_re(word):
+	return re.sub(r"^\W+|\W+$", "", word)
+
+def PrepreplaceFile(file, find, repl):
+	with fileinput.FileInput(file, inplace=True, backup='.sav') as file:
+		for line in file:
+			print(line.replace(find, repl), end='')
 
 class BibleWorksAuto:
 	def __init__(self):
@@ -49,21 +63,18 @@ class WordAuto:
 		self.word.Visible = True
 		self.sel = self.word.Selection
 
-	def PrintToWord(self, line, style = 'Normal', bold = 0):
-		self.sel.Style = style
-		self.sel.font.Bold = bold
-		self.sel.font.Size = 12
+	def PrintToWord(self, line, bold = 1, fontsize=9):	
+		self.sel.Font.Bold = bold
+		self.sel.Font.Name = 'Cambria'
+		self.sel.Font.Size = fontsize
 		self.sel.TypeText(line)
-	
+		
 
 class LBCTextToWord:
 
 	def __init__(self):
 		self.bw = None
 		self.word = None
-
-	def strip_nonalnum_re(self, word):
-		return re.sub(r"^\W+|\W+$", "", word)
 
 	def ParseDashPart(self, bookchap, rest):
 		verses = []
@@ -81,7 +92,16 @@ class LBCTextToWord:
 		return verses
 
 	def PrintCommaVerses(self, bookchap, rest):
-		return None
+		savebookchap = bookchap
+		toks = rest.split(',')
+	
+		for tok in toks:
+			tok = strip_nonalnum_re(tok)
+			bookchap += tok
+			self.bw.GoToVerse(bookchap)
+			s = self.bw.GetVerse()
+			self.PrintVerse(s)
+			bookchap = savebookchap
 
 	def PrintDashedVerses(self, verses):
 		results = []
@@ -97,21 +117,17 @@ class LBCTextToWord:
 		toks = first.split(':')
 		bookchap = toks.pop(0) + ':'
 		s = ''.join(toks)
-		delim = ' '
-		spaces  = [e+delim for e in s.split(delim) if e]
+		spaces = split_keep_delims(s, ' ')
 		v = spaces.pop(0)
 		low = int(v)
 		hi = low + len(verses)
-		#bookchap += v + '-' + str(hi-1) + ': '		
-
 		bookchap += ''.join(toks)
 
 		for x in results:
 			toks = x.split(':')
 			first = toks.pop(0)
 			s = ''.join(toks)
-			delim = ' '
-			spaces  = [e+delim for e in s.split(delim) if e]
+			spaces = split_keep_delims(s, ' ')
 			spaces.pop(0)
 			low += 1
 			rest = ' ' + str(low) + ' ' + ''.join(spaces)
@@ -122,15 +138,14 @@ class LBCTextToWord:
 	def ParseVerse(self, verse):
 		pattern = re.compile('^#[0-9]+')
 		if(re.search(pattern, verse)):
-			delim = ' '
-			spaces  = [e+delim for e in verse.split(delim) if e]
+			spaces = split_keep_delims(verse, ' ')
 			footnum = spaces.pop(0)
 			
-			self.word.PrintToWord('\n')
-			self.word.PrintToWord(footnum, 'Normal', 0)
+			self.word.PrintToWord('\n', 1, 9)
+			self.word.PrintToWord(footnum, 1, 9)
 			verse = ''.join(spaces)
 
-		stripped = self.strip_nonalnum_re(verse)
+		stripped = strip_nonalnum_re(verse)
 
 		#split by colon, first part is book and chapter, be sure to add the colon
 		toks = stripped.split(':')
@@ -158,25 +173,30 @@ class LBCTextToWord:
 		bookchap += ':'
 		
 		s = ''.join(toks)
-		delim = ' '
-		spaces  = [e+delim for e in s.split(delim) if e]
+		spaces = split_keep_delims(s, ' ')
 
 		v = spaces.pop(0)
-		v = self.strip_nonalnum_re(v)
+		v = strip_nonalnum_re(v)
 
 		bookchap += v + ': '
 		rest = ''.join(spaces)
 
-		self.word.PrintToWord(bookchap, 'Normal', 1) 
-		self.word.PrintToWord(rest + ' ', 'Normal', 0)
+		self.word.PrintToWord(bookchap, 1, 9) 
+		self.word.PrintToWord(rest, 0, 9)
 		
 
 	def ParseVerseLine(self, verseline):
 		toks = verseline.split(';')
 		for tok in toks:
 			self.ParseVerse(tok)
+
+		self.word.PrintToWord('\n')
 	
-	def ParseFile(self, arg):
+	def ParseFile(self, file):
+
+		PrepreplaceFile(file, 'Psalms', 'Psalm')
+		PrepreplaceFile(file, 'Jude ', 'Jude 1:')
+
 		self.bw = BibleWorksAuto()
 		self.bw.Initialize()
 
@@ -185,7 +205,7 @@ class LBCTextToWord:
 
 		bv = re.compile('[0-9]+:[0-9]+')
 
-		f = open(arg)
+		f = open(file)
 
 		for line in f:	
 			if('(' not in line):
@@ -194,7 +214,8 @@ class LBCTextToWord:
 				toks = line.split('(')
 				last = toks.pop()
 				jline = '('.join(toks)
-				self.PrintNonVerseLine(jline + '\n')
+				# todo self.PrintNonVerseLine(jline + '\n')
+				self.PrintNonVerseLine(jline)
 				self.ParseVerseLine(last)
 
 		f.close()
@@ -204,15 +225,33 @@ class LBCTextToWord:
 		title = re.compile('^London Baptist Confession of Faith 1689')
 
 		if(re.search(title, line)):
-			self.word.PrintToWord(line, 'Title', 1)
+			self.word.PrintToWord(line, 1, 16)
 		elif(re.search(pattern, line)):
-			self.word.PrintToWord(line, 'Heading 1', 1)
+			self.word.PrintToWord(line, 1, 14)
 		else:
-			self.word.PrintToWord(line)
+			self.word.PrintToWord(line, 0, 12)
+			#self.word.PrintToWord('\n' + line, 0, 12)
+
+	def TestJustVerses(self, file):
+		self.bw = BibleWorksAuto()
+		self.bw.Initialize()
+
+		self.word = WordAuto()
+		self.word.Initialize()
+
+
+		f = open(file)
+
+		for line in f:
+			self.ParseVerseLine(line)
+
+		f.close()
 
 def main():
 	assert(argv[1] != None)
 	lbc = LBCTextToWord()
 	lbc.ParseFile(argv[1])
+	#lbc.TestJustVerses(argv[1])
+	
 
 main()
