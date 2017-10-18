@@ -72,9 +72,10 @@ class WordAuto:
 
 class LBCTextToWord:
 
-	def __init__(self):
+	def __init__(self, refs = False):
 		self.bw = None
 		self.word = None
+		self.just_refs = refs
 
 	def ParseDashPart(self, bookchap, rest):
 		verses = []
@@ -186,11 +187,17 @@ class LBCTextToWord:
 		
 
 	def ParseVerseLine(self, verseline):
-		toks = verseline.split(';')
-		for tok in toks:
-			self.ParseVerse(tok)
-
-		self.word.PrintToWord('\n')
+		if(self.just_refs == False):
+			toks = verseline.split(';')
+			for tok in toks:
+				self.ParseVerse(tok)
+		
+			self.word.PrintToWord('\n')
+		else:
+			toks = verseline.split('#')
+			for tok in toks:
+				p = tok.replace(')', '')
+				self.word.PrintToWord('#' + p + '\n')
 	
 	def ParseFile(self, file):
 
@@ -214,7 +221,6 @@ class LBCTextToWord:
 				toks = line.split('(')
 				last = toks.pop()
 				jline = '('.join(toks)
-				# todo self.PrintNonVerseLine(jline + '\n')
 				self.PrintNonVerseLine(jline)
 				self.ParseVerseLine(last)
 
@@ -230,28 +236,11 @@ class LBCTextToWord:
 			self.word.PrintToWord(line, 1, 14)
 		else:
 			self.word.PrintToWord(line, 0, 12)
-			#self.word.PrintToWord('\n' + line, 0, 12)
-
-	def TestJustVerses(self, file):
-		self.bw = BibleWorksAuto()
-		self.bw.Initialize()
-
-		self.word = WordAuto()
-		self.word.Initialize()
-
-
-		f = open(file)
-
-		for line in f:
-			self.ParseVerseLine(line)
-
-		f.close()
 
 def main():
 	assert(argv[1] != None)
-	lbc = LBCTextToWord()
+	lbc = LBCTextToWord(True) #True means just print refs
 	lbc.ParseFile(argv[1])
-	#lbc.TestJustVerses(argv[1])
 	
 
 main()
