@@ -73,7 +73,12 @@ class WordAuto:
 		self.sel.Font.Name = 'Cambria'
 		self.sel.Font.Size = fontsize
 		self.sel.TypeText(line)
-		
+	
+	def SaveDoc(self, name):
+		self.word.Application.Save(name)
+
+	def RunMacro(self, name):
+		self.word.Application.Run(name)
 
 class LBCTextToWord:
 
@@ -242,10 +247,13 @@ class LBCTextToWord:
 		else:
 			self.word.PrintToWord(line, 0, 12)
 
+	def RunWordMacro(self, name):
+		self.word.RunMacro(name)
+
 def main():
 	assert(argv[1] != None)
 	lbc = LBCTextToWord(True) #True means just print refs
 	lbc.ParseFile(argv[1])
-	
+	lbc.RunWordMacro('Normal.NewMacros.ReplaceHashes')
 
 main()
