@@ -281,6 +281,7 @@ def CreateOne(just_refs = False):
 	lbc.RunWordMacro('Normal.NewMacros.DeleteStrayHashes')
 	lbc.RunWordMacro('Normal.NewMacros.RestorePsalms')
 	lbc.RunWordMacro('Normal.NewMacros.LBCTitle')
+	lbc.RunWordMacro('Normal.NewMacros.RemoveExtraLines')
 
 	if(lbc.IsJustRefs() == True):
 		lbc.SaveWordDoc(argv[1] + '.logos' + '.docx')
