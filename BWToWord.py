@@ -75,7 +75,10 @@ class WordAuto:
 		self.sel.TypeText(line)
 	
 	def SaveDoc(self, name):
-		self.word.Application.Save(name)
+		self.word.Application.ActiveDocument.SaveAs2(name)
+
+	def CloseDoc(self):
+		self.word.Application.ActiveDocument.Close()
 
 	def RunMacro(self, name):
 		self.word.Application.Run(name)
@@ -86,6 +89,10 @@ class LBCTextToWord:
 		self.bw = None
 		self.word = None
 		self.just_refs = refs
+		self.infile = ''
+
+	def IsJustRefs(self):
+		return self.just_refs
 
 	def ParseDashPart(self, bookchap, rest):
 		verses = []
@@ -211,11 +218,14 @@ class LBCTextToWord:
 	
 	def ParseFile(self, file):
 
+		self.infile = file
+
 		PrepreplaceFile(file, 'Psalms', 'Psalm')
 		PrepreplaceFile(file, 'Jude ', 'Jude 1:')
 
-		self.bw = BibleWorksAuto()
-		self.bw.Initialize()
+		if(self.IsJustRefs() == False):
+			self.bw = BibleWorksAuto()
+			self.bw.Initialize()
 
 		self.word = WordAuto()
 		self.word.Initialize()
@@ -250,10 +260,28 @@ class LBCTextToWord:
 	def RunWordMacro(self, name):
 		self.word.RunMacro(name)
 
-def main():
-	assert(argv[1] != None)
-	lbc = LBCTextToWord(True) #True means just print refs
+	def SaveWordDoc(self, name):
+		self.word.SaveDoc(name)
+
+	def CloseWordDoc(self):
+		self.word.CloseDoc()
+		
+def CreateOne(just_refs = False):
+	lbc = LBCTextToWord(just_refs) #True means just print refs
 	lbc.ParseFile(argv[1])
+
 	lbc.RunWordMacro('Normal.NewMacros.ReplaceHashes')
+	lbc.RunWordMacro('Normal.NewMacros.ChapterHeadings1')
+
+	if(lbc.IsJustRefs() == True):
+		lbc.SaveWordDoc(argv[1] + '.logos' + '.docx')
+	else:
+		lbc.SaveWordDoc(argv[1] + '.print' + '.docx')
+
+	lbc.CloseWordDoc()
+
+def main():
+	CreateOne(True)
+	CreateOne(False)
 
 main()
