@@ -77,6 +77,9 @@ class WordAuto:
 	def SaveDoc(self, name):
 		self.word.Application.ActiveDocument.SaveAs2(name)
 
+	def SaveDocAsPDF(self, name):
+		self.word.Application.ActiveDocument.SaveAs2(name, 17)
+
 	def CloseDoc(self):
 		self.word.Application.ActiveDocument.Close()
 
@@ -221,7 +224,7 @@ class LBCTextToWord:
 		self.infile = file
 
 		PrepreplaceFile(file, 'Psalms', 'Psalm')
-		PrepreplaceFile(file, 'Jude ', 'Jude 1:')
+		#PrepreplaceFile(file, 'Jude ', 'Jude 1:')
 
 		if(self.IsJustRefs() == False):
 			self.bw = BibleWorksAuto()
@@ -263,6 +266,9 @@ class LBCTextToWord:
 	def SaveWordDoc(self, name):
 		self.word.SaveDoc(name)
 
+	def SaveWordDocAsPDF(self, name):
+		self.word.SaveDocAsPDF(name)
+
 	def CloseWordDoc(self):
 		self.word.CloseDoc()
 		
@@ -272,16 +278,21 @@ def CreateOne(just_refs = False):
 
 	lbc.RunWordMacro('Normal.NewMacros.ReplaceHashes')
 	lbc.RunWordMacro('Normal.NewMacros.ChapterHeadings1')
+	lbc.RunWordMacro('Normal.NewMacros.DeleteStrayHashes')
+	lbc.RunWordMacro('Normal.NewMacros.RestorePsalms')
+	lbc.RunWordMacro('Normal.NewMacros.LBCTitle')
 
 	if(lbc.IsJustRefs() == True):
 		lbc.SaveWordDoc(argv[1] + '.logos' + '.docx')
 	else:
 		lbc.SaveWordDoc(argv[1] + '.print' + '.docx')
+		lbc.SaveWordDocAsPDF(argv[1] + '.print' + '.pdf')
 
 	lbc.CloseWordDoc()
 
 def main():
-	CreateOne(True)
-	CreateOne(False)
+	CreateOne(True)  #refs only for logos
+	CreateOne(False) #full verses for print book
 
 main()
+#for /R e:\PDF\ReformedBaptist\LBC\Templates %i in (*.txt) do type %i >> LBC.txt
