@@ -1,15 +1,19 @@
+###############################################################################
+# Name		: BWToWord.py
+# Author	: Stephen E. MacKenzie
+# Copyright : Licensed under GPL version 3 (GPLv2)
+###############################################################################
+
+###############################################################################
+# imports
 import win32com
 import win32clipboard
 import sys
 import re
 import fileinput
 
-#Word find
-#\#([0-9]{1,2})
-#word replace
-#\1
-#be sure to set format to superscript
-
+###############################################################################
+# namespace scoping
 from sys import argv
 from re import split
 from win32com import client
@@ -18,7 +22,8 @@ from win32clipboard import OpenClipboard
 from win32clipboard import CloseClipboard
 from win32clipboard import GetClipboardData
 
-# utilities
+###############################################################################
+# global utilities
 def split_keep_delims(line, delim):
 	return [e+delim for e in line.split(delim) if e]
 
@@ -30,6 +35,8 @@ def PrepreplaceFile(file, find, repl):
 		for line in file:
 			print(line.replace(find, repl), end='')
 
+###############################################################################
+# Bibleworks automation class
 class BibleWorksAuto:
 	def __init__(self):
 		self.bw = None
@@ -52,6 +59,8 @@ class BibleWorksAuto:
 		CloseClipboard();
 		return s
 
+###############################################################################
+# Word automation class
 class WordAuto:
 	def __init__(self):
 		self.word = None
@@ -86,13 +95,14 @@ class WordAuto:
 	def RunMacro(self, name):
 		self.word.Application.Run(name)
 
+###############################################################################
+# Class for parsing the London Baptist Confession from raw text to Word
 class LBCTextToWord:
 
 	def __init__(self, refs = False):
 		self.bw = None
 		self.word = None
 		self.just_refs = refs
-		self.infile = ''
 
 	def IsJustRefs(self):
 		return self.just_refs
@@ -220,11 +230,7 @@ class LBCTextToWord:
 				self.word.PrintToWord('#' + p + '\n')
 	
 	def ParseFile(self, file):
-
-		self.infile = file
-
 		PrepreplaceFile(file, 'Psalms', 'Psalm')
-		#PrepreplaceFile(file, 'Jude ', 'Jude 1:')
 
 		if(self.IsJustRefs() == False):
 			self.bw = BibleWorksAuto()
@@ -271,7 +277,9 @@ class LBCTextToWord:
 
 	def CloseWordDoc(self):
 		self.word.CloseDoc()
-		
+
+###############################################################################
+#  Global Driver functions		
 def CreateOne(just_refs = False):
 	lbc = LBCTextToWord(just_refs) #True means just print refs
 	lbc.ParseFile(argv[1])
@@ -291,9 +299,26 @@ def CreateOne(just_refs = False):
 
 	lbc.CloseWordDoc()
 
+###############################################################################
+# main
 def main():
-	CreateOne(True)  #refs only for logos
-	CreateOne(False) #full verses for print book
+	if(len(argv) > 2):
+		if(argv[2] == "refs"):
+			CreateOne(True)  #refs only for logos
+		elif(argv[2] == "full"):
+			CreateOne(False) #full verses for print book
+	else:
+		CreateOne(True)  #refs only for logos
+		CreateOne(False) #full verses for print book
 
+###############################################################################
+# call to main
 main()
+
 #for /R e:\PDF\ReformedBaptist\LBC\Templates %i in (*.txt) do type %i >> LBC.txt
+#Word find and replace.  Record a macro.
+#\#([0-9]{1,2})
+#word replace
+#\1
+#be sure to set format to superscript, make sure to 
+#highlight the replace field first
