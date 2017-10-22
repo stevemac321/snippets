@@ -77,9 +77,9 @@ class WordAuto:
 		self.word.Visible = True
 		self.sel = self.word.Selection
 
-	def PrintToWord(self, line, bold = 1, fontsize=12):	
+	def PrintToWord(self, line, bold = 1, fontsize=12, fontname = 'Palatino Linotype'):	
 		self.sel.Font.Bold = bold
-		self.sel.Font.Name = 'Palatino Linotype'
+		self.sel.Font.Name = fontname
 		self.sel.Font.Size = fontsize
 		self.sel.TypeText(line)
 	
@@ -99,14 +99,15 @@ class WordAuto:
 # Class for parsing the London Baptist Confession from raw text to Word
 class LBCTextToWord:
 
-	def __init__(self, refs = False):
+	def __init__(self, refs = False, footnotesize = 16, bodysize = 18, 
+								headingsize = 24, titlesize = 30):
 		self.bw = None
 		self.word = None
 		self.just_refs = refs
-		self.footnotesize = 16
-		self.bodysize = 18
-		self.headingsize = 24
-		self.titlesize = 30
+		self.footnotesize = footnotesize
+		self.bodysize = bodysize
+		self.headingsize = headingsize
+		self.titlesize = titlesize
 
 	def IsJustRefs(self):
 		return self.just_refs
@@ -269,8 +270,9 @@ class LBCTextToWord:
 
 ###############################################################################
 #  Global Driver functions		
-def CreateOne(just_refs = False):
-	lbc = LBCTextToWord(just_refs) #True means just print refs
+def CreateOne(refs = False, footsize = 16, bodysize = 18, 
+								headingsize = 24, titlesize = 30):
+	lbc = LBCTextToWord(refs, footsize, bodysize, headingsize, titlesize) 
 	lbc.ParseFile(argv[1])
 
 	lbc.RunWordMacro('Normal.NewMacros.ReplaceHashes')
@@ -287,7 +289,7 @@ def CreateOne(just_refs = False):
 		lbc.SaveWordDoc(argv[1] + '.print' + '.docx')
 		lbc.SaveWordDocAsPDF(argv[1] + '.print' + '.pdf')
 
-	#lbc.CloseWordDoc()
+	lbc.CloseWordDoc()
 
 ###############################################################################
 # main
@@ -296,10 +298,13 @@ def main():
 		if(argv[2] == "refs"):
 			CreateOne(True)  #refs only for logos
 		elif(argv[2] == "full"):
-			CreateOne(False) #full verses for print book
+		#	CreateOne(False) #full verses for print book, default is booklet
+			CreateOne(False, 11, 14, 18, 24)
 	else:
 		CreateOne(True)  #refs only for logos
 		CreateOne(False) #full verses for print book
+
+	print('BWToWord has finished executing\n')
 
 ###############################################################################
 # call to main
