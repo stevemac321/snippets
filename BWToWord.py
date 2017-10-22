@@ -77,9 +77,9 @@ class WordAuto:
 		self.word.Visible = True
 		self.sel = self.word.Selection
 
-	def PrintToWord(self, line, bold = 1, fontsize=9):	
+	def PrintToWord(self, line, bold = 1, fontsize=12):	
 		self.sel.Font.Bold = bold
-		self.sel.Font.Name = 'Cambria'
+		self.sel.Font.Name = 'Palatino Linotype'
 		self.sel.Font.Size = fontsize
 		self.sel.TypeText(line)
 	
@@ -103,6 +103,10 @@ class LBCTextToWord:
 		self.bw = None
 		self.word = None
 		self.just_refs = refs
+		self.footnotesize = 16
+		self.bodysize = 18
+		self.headingsize = 24
+		self.titlesize = 30
 
 	def IsJustRefs(self):
 		return self.just_refs
@@ -120,7 +124,7 @@ class LBCTextToWord:
 				for x in range(low, hi + 1):
 					verses.append(bookchap + str(x))
 
-		return verses
+		return verses					
 
 	def PrintCommaVerses(self, bookchap, rest):
 		savebookchap = bookchap
@@ -134,37 +138,22 @@ class LBCTextToWord:
 			self.PrintVerse(s)
 			bookchap = savebookchap
 
-	def PrintDashedVerses(self, verses):
-		results = []
+	def PrintDashedVerses(self, verses, orig_dashed_ref):
+		rest = ''
 		for v in verses:
 			self.bw.GoToVerse(v);
 			s = self.bw.GetVerse()
-			results.append(s)
-		
-		#make one multi-verse line to print		
-		#get the first verse
-		first = results.pop(0)
-
-		toks = first.split(':')
-		bookchap = toks.pop(0) + ':'
-		s = ''.join(toks)
-		spaces = split_keep_delims(s, ' ')
-		v = spaces.pop(0)
-		low = int(v)
-		hi = low + len(verses)
-		bookchap += ''.join(toks)
-
-		for x in results:
-			toks = x.split(':')
-			first = toks.pop(0)
+			#strip the 2 Timothy 3:, just get the verse number and verse
+			toks = s.split(':')
+			#just no need to save it
+			toks.pop(0) 
 			s = ''.join(toks)
-			spaces = split_keep_delims(s, ' ')
-			spaces.pop(0)
-			low += 1
-			rest = ' ' + str(low) + ' ' + ''.join(spaces)
-			bookchap += rest
-			
-		self.PrintVerse(bookchap)
+			# now add verse number and verse text		
+			#results.append(s)
+			rest += ' ' + s + ' '
+		
+		self.word.PrintToWord(orig_dashed_ref + ': ', 1, self.footnotesize) 
+		self.word.PrintToWord(rest, 0, self.footnotesize)
 
 	def ParseVerse(self, verse):
 		pattern = re.compile('^#[0-9]+')
@@ -172,8 +161,8 @@ class LBCTextToWord:
 			spaces = split_keep_delims(verse, ' ')
 			footnum = spaces.pop(0)
 			
-			self.word.PrintToWord('\n', 1, 9)
-			self.word.PrintToWord(footnum, 1, 9)
+			self.word.PrintToWord('\n', 1, self.footnotesize)
+			self.word.PrintToWord(footnum, 1, self.footnotesize)
 			verse = ''.join(spaces)
 
 		stripped = strip_nonalnum_re(verse)
@@ -188,7 +177,7 @@ class LBCTextToWord:
 			if(re.search('-', rest)):
 				verses = self.ParseDashPart(bookchap, rest)
 				if(verses != None):
-					self.PrintDashedVerses(verses)
+					self.PrintDashedVerses(verses, stripped)
 			elif(re.search(',', rest)):
 				self.PrintCommaVerses(bookchap, rest)
 			else:
@@ -212,8 +201,8 @@ class LBCTextToWord:
 		bookchap += v + ': '
 		rest = ''.join(spaces)
 
-		self.word.PrintToWord(bookchap, 1, 9) 
-		self.word.PrintToWord(rest, 0, 9)
+		self.word.PrintToWord(bookchap, 1, self.footnotesize) 
+		self.word.PrintToWord(rest, 0, self.footnotesize)
 		
 
 	def ParseVerseLine(self, verseline):
@@ -260,11 +249,11 @@ class LBCTextToWord:
 		title = re.compile('^London Baptist Confession of Faith 1689')
 
 		if(re.search(title, line)):
-			self.word.PrintToWord(line, 1, 16)
+			self.word.PrintToWord(line, 1, self.titlesize)
 		elif(re.search(pattern, line)):
-			self.word.PrintToWord(line, 1, 14)
+			self.word.PrintToWord(line + '\n', 1, self.headingsize)
 		else:
-			self.word.PrintToWord(line, 0, 12)
+			self.word.PrintToWord(line, 0, self.bodysize)
 
 	def RunWordMacro(self, name):
 		self.word.RunMacro(name)
@@ -290,6 +279,7 @@ def CreateOne(just_refs = False):
 	lbc.RunWordMacro('Normal.NewMacros.RestorePsalms')
 	lbc.RunWordMacro('Normal.NewMacros.LBCTitle')
 	lbc.RunWordMacro('Normal.NewMacros.RemoveExtraLines')
+	lbc.RunWordMacro('Normal.NewMacros.ParagraphBoldItalic')
 
 	if(lbc.IsJustRefs() == True):
 		lbc.SaveWordDoc(argv[1] + '.logos' + '.docx')
@@ -297,7 +287,7 @@ def CreateOne(just_refs = False):
 		lbc.SaveWordDoc(argv[1] + '.print' + '.docx')
 		lbc.SaveWordDocAsPDF(argv[1] + '.print' + '.pdf')
 
-	lbc.CloseWordDoc()
+	#lbc.CloseWordDoc()
 
 ###############################################################################
 # main
