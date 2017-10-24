@@ -3,6 +3,9 @@ import sys
 import os
 from sys import argv
 
+def strip_nonalnum_re(word):
+	return re.sub(r"^\W+|\W+$", "", word)
+
 def main():
 	assert(len(argv) == 2)
 
@@ -15,16 +18,16 @@ def main():
 		line = ''.join(toks)
 		#
 		k = line.rfind('(')
-		s1 = line[:k] + '</br>'
-		print(re.sub(r'#([0-9]+)', r'<sup>\1</sup>', s1))
+		s1 = line[:k] + '</br></br>'
+		print(re.sub(r'#([0-9]+)', r'<sup>\1</sup>', s1), end='')
 		s2 = '(' + line[k+1:]
 		toks = s2.split('(')
 		s2 = toks.pop(0)	
 		s2 = toks.pop(0)
-		s2 = s2.rstrip(')')
+		s2 = strip_nonalnum_re(s2)
+		s2 = re.sub(r'#([0-9]+)', r'</br><sup>\1</sup>', s2)
 		s2 = s2 + ' </p>'
-		p = re.sub(r'#([0-9]+)', r'</br><sup>\1</sup>', s2)
-		print(p)		
+		print(s2)		
 	
 	f.close()
 	
