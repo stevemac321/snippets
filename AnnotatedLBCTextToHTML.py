@@ -16,7 +16,7 @@ def main():
 		#
 		k = line.rfind('(')
 		s1 = line[:k] + '</br>'
-		print(re.sub(r'#([0-9+])', r'<sup>\1</sup>', s1))
+		print(re.sub(r'#([0-9]+)', r'<sup>\1</sup>', s1))
 		s2 = '(' + line[k+1:]
 		toks = s2.split('(')
 		s2 = toks.pop(0)	
