@@ -23,7 +23,8 @@ def main():
 		s2 = toks.pop(0)
 		s2 = s2.rstrip(')')
 		s2 = s2 + ' </p>'
-		print(re.sub(r'#([0-9+])', r'</br><sup>\1</sup>', s2))		
+		p = re.sub(r'#([0-9]+)', r'</br><sup>\1</sup>', s2)
+		print(p)		
 	
 	f.close()
 	
