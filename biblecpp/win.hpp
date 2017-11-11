@@ -14,13 +14,16 @@ class winsql {
   void text_out(MYSQL_RES *results) {
     assert(results);
     int num_fields = mysql_num_fields(results);
+    wmove(_pwin, 1, 1);
+    wclear(_pwin);
+    wborder(_pwin, 0,0,0,0,0,0,0,0);
+    wrefresh(_pwin);
 
     MYSQL_ROW row;
     // todo control output so that it does not overwrite border
     // also tokenize the line to put one word at a time, so that
     // words do not split between lines.
     // select t, b, c, v from bible.t_kjv where between...
-    wmove(_pwin, 1, 1);
     while ((row = mysql_fetch_row(results)))
       for (int i = 0; i < num_fields; i++) {
         waddstr(_pwin, row[i]);
@@ -66,8 +69,17 @@ class wininput {
   }
   
   int getcmd(char *str, int n) {
+
+    wclrtoeol(_pwin);
+    wborder(_pwin, 0,0,0,0,0,0,0,0);
+    wrefresh(_pwin);
+    refresh();
+    
     int ret = wgetnstr(_pwin, str, n);
-    return ret;
+    if(str && *str == 27)
+      return 27;
+    else
+      return ret;
   }
 private:
   WINDOW * _pwin=NULL;
