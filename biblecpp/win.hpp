@@ -64,6 +64,7 @@ private:
 
 class wininput : public win {
  public:
+  enum mode {quit, bible, dict};  
   wininput(int lines, int cols, int y, int x)
     : win(lines, cols, y, x) {
     _pwin = newwin(lines, cols, y, x);
@@ -79,7 +80,7 @@ class wininput : public win {
     return _pwin;
   }
   
-  int getcmd(char *str, int n) {
+  mode getcmd(char *str, int n) {
 
     wclrtoeol(_pwin);
     wborder(_pwin, 0,0,0,0,0,0,0,0);
@@ -88,10 +89,27 @@ class wininput : public win {
     
     int ret = wgetnstr(_pwin, str, n);
     if(str && *str == 27)
-      return 27;
+      return quit;
     else
-      return ret;
+      return is_dict(str) ? dict : bible;
   }
+  
 private:
+  bool is_dict(char *str) {
+    int len = strlen(str);
+    if(len < 3)
+      return false;
+
+    if(str[0] != 'd' && str[0] != 'D')
+      return false;
+
+    if(str[1] != 'i' && str[1] != 'I')
+      return false;
+
+    if(str[2] != 'c' && str[2] != 'C')
+      return false;
+
+    return true;
+  }
   WINDOW * _other = NULL;
 };
