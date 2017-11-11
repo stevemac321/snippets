@@ -23,8 +23,7 @@ using std::pair;
 using std::regex;
 using std::string;
 
-template <typename T, size_t N>
-constexpr size_t array_size(T (&)[N]) {
+template <typename T, size_t N> constexpr size_t array_size(T (&)[N]) {
   return N;
 }
 
@@ -35,7 +34,7 @@ struct mless {
 };
 
 class parsecmd {
- public:
+public:
   parsecmd() {
     for (size_t i = 0; i < array_size(books); i++)
       _m.insert(std::make_pair(books[i].name, books[i].num));
@@ -47,9 +46,11 @@ class parsecmd {
 
     std::transform(first_part.begin(), first_part.end(), first_part.begin(),
                    ::toupper);
+
     auto snum = _m.find(first_part.c_str());
 
-    if (snum == _m.end()) return string("");
+    if (snum == _m.end())
+      return string("");
     string str = snum->second;
     return str;
   }
@@ -73,7 +74,7 @@ class parsecmd {
 
     // pattern 0: Gen 1:1-Gen 2:1
     std::regex r0(
-        "([A-za-z]+) ([0-9]+):([0-9]+)-([A-za-z]+) ([0-9]+):([0-9]+)");
+        "([0-9A-Za-z]+) ([0-9]+):([0-9]+)-([0-9A-Za-z]+) ([0-9]+):([0-9]+)");
     if (std::regex_search(command, parts, r0)) {
       ret1 = build_bookname(parts, 1);
       ret2 = build_bookname(parts, 4);
@@ -83,7 +84,7 @@ class parsecmd {
     }
 
     // pattern 1: Gen 1:1-2:1
-    std::regex r1("([A-za-z]+) ([0-9]+):([0-9]+)-([0-9]+):([0-9]+)");
+    std::regex r1("([0-9A-Za-z]+) ([0-9]+):([0-9]+)-([0-9]+):([0-9]+)");
     if (std::regex_search(command, parts, r1)) {
       ret1 = build_bookname(parts, 1);
       ret2 = ret1;
@@ -93,7 +94,7 @@ class parsecmd {
     }
 
     // pattern 2: Gen 1:1-3
-    std::regex r2("([A-za-z]+) ([0-9]+):([0-9]+)-([0-9]+)");
+    std::regex r2("([0-9A-Za-z]+) ([0-9]+):([0-9]+)-([0-9]+)");
     if (std::regex_search(command, parts, r2)) {
       ret1 = build_bookname(parts, 1);
       ret1 += build_sql_pattern1(parts, 2, 2);
@@ -104,7 +105,7 @@ class parsecmd {
     }
 
     // pattern 3: Gen 1:1
-    std::regex r3("([A-za-z]+) ([0-9]+):([0-9]+)");
+    std::regex r3("([0-9A-Za-z]+) ([0-9]+):([0-9]+)");
     if (std::regex_search(command, parts, r3)) {
       ret1 = build_bookname(parts, 1);
       ret1 += build_sql_pattern1(parts, 2, 3);
@@ -118,11 +119,12 @@ class parsecmd {
     int vallen = strlen(val);
     char padded[4] = "000";
 
-    for (int i = 2, j = vallen - 1; j >= 0; i--, j--) padded[i] = val[j];
+    for (int i = 2, j = vallen - 1; j >= 0; i--, j--)
+      padded[i] = val[j];
 
     return string(padded);
   }
 
- private:
+private:
   map<const char *, const char *, mless> _m;
 };

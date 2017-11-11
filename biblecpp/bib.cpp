@@ -12,7 +12,7 @@ int main() {
   db.connect();
 
   wininput in(5, 100, 0, 0);
-  winsql out(25, 100, 21, 0);
+  winsql out(40, 180, 6, 0);
   out.set_buddy_win(in.getwinprop());
 
   parsecmd parse;
