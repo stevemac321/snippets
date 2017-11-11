@@ -1,10 +1,26 @@
 #pragma once
 #include "precompile.hpp"
 
-class winsql {
+class win {
+public:
+  win(int lines, int cols, int y, int x)
+    :_lines(lines), _cols(cols), _y(y), _x(x) {
+    _pwin=nullptr;
+  }
+
+protected:
+  WINDOW * _pwin=nullptr;
+  int _lines = 0;
+  int _cols = 0;
+  int _y = 0;
+  int _x = 0;
+  
+};
+
+class winsql: public win {
  public:
   winsql(int lines, int cols, int y, int x)
-    :_lines(lines), _cols(cols), _y(y), _x(x){
+    :win(lines, cols, y, x) {
     _pwin = newwin(lines, cols, y, x);
     wborder(_pwin, 0, 0, 0, 0, 0, 0, 0, 0);
     wrefresh(_pwin);
@@ -43,18 +59,13 @@ class winsql {
   }
 
 private:
-  WINDOW * _pwin=NULL;
   WINDOW * _other=NULL;
-  int _lines = 0;
-  int _cols = 0;
-  int _y = 0;
-  int _x = 0;
 };
 
-class wininput {
+class wininput : public win {
  public:
   wininput(int lines, int cols, int y, int x)
-    : _lines(lines), _cols(cols), _y(y), _x(x) {
+    : win(lines, cols, y, x) {
     _pwin = newwin(lines, cols, y, x);
     wborder(_pwin, 0, 0, 0, 0, 0, 0, 0, 0);
     wmove(_pwin, 1, 1);
@@ -82,10 +93,5 @@ class wininput {
       return ret;
   }
 private:
-  WINDOW * _pwin=NULL;
   WINDOW * _other = NULL;
-  int _lines = 0;
-  int _cols = 0;
-  int _y = 0;
-  int _x = 0;
 };
