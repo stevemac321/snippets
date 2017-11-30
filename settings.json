@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "atomic.h": "c",
+        "file.h": "c",
+        "stacktrace.h": "c",
+        "kallsyms.h": "c",
+        "workqueue_internal.h": "c",
+        "module.h": "c"
+    }
+}
