@@ -1,0 +1,52 @@
+perf stat -e task-clock,cycles,instructions,cache-references,cache-misses./<exe>
+
+ Performance counter stats for './map':
+
+         15.910333      task-clock (msec)         #    0.963 CPUs utilized
+        21,189,007      cycles                    #    1.332 GHz
+        25,008,883      instructions              #    1.18  insn per cycle
+            35,217      cache-references          #    2.213 M/sec
+            22,399      cache-misses              #   63.603 % of all cache refs
+
+       0.016526395 seconds time elapsed
+
+ Performance counter stats for './unordered':
+
+         14.256361      task-clock (msec)         #    0.975 CPUs utilized
+        23,645,543      cycles                    #    1.659 GHz
+        34,644,808      instructions              #    1.47  insn per cycle
+           118,881      cache-references          #    8.339 M/sec
+            56,601      cache-misses              #   47.611 % of all cache refs
+
+       0.014622921 seconds time elapsed
+
+ Performance counter stats for './vector':
+
+         10.782533      task-clock (msec)         #    0.963 CPUs utilized
+        19,726,901      cycles                    #    1.830 GHz
+        35,846,749      instructions              #    1.82  insn per cycle
+            73,885      cache-references          #    6.852 M/sec
+            32,618      cache-misses              #   44.147 % of all cache refs
+
+       0.011200758 seconds time elapsed
+
+ Performance counter stats for './openmap':
+
+          2.118863      task-clock (msec)         #    0.893 CPUs utilized
+         5,065,439      cycles                    #    2.391 GHz
+         7,129,253      instructions              #    1.41  insn per cycle
+            42,491      cache-references          #   20.054 M/sec
+            16,306      cache-misses              #   38.375 % of all cache refs
+
+       0.002371951 seconds time elapsed
+
+ Performance counter stats for './fast':
+
+          1.410549      task-clock (msec)         #    0.844 CPUs utilized
+         2,807,469      cycles                    #    1.990 GHz
+         3,511,822      instructions              #    1.25  insn per cycle
+            32,236      cache-references          #   22.854 M/sec
+             9,462      cache-misses              #   29.352 % of all cache refs
+
+       0.001670919 seconds time elapsed
+
