@@ -8,6 +8,7 @@
 #include <functional>
 #include <type_traits>
 #include <utility>
+#include <cstdio>
 #include "allocator.hpp"
 #include "unordered_map_iterator.hpp"
 
@@ -63,25 +64,26 @@ class unordered_map
 	std::pair<iterator, bool> insert(const value_type &obj)
 	{
 		assert(_size <= _max_size);
-		bool found = false;
+		size_t idx = obj.first;
 
-		size_t idx = get_slot(obj.first);
+		// @TODO actual hashing.  Use local linear probing for collions
+		// cuckoo or double hashing invites cache misses.
+		if (_is_equal(_table[idx].first, _empty_key)) {
+			_allocator.construct(&_table[idx], obj);
+			_size++;
+			iterator it(&_table[idx]);
+			return make_pair(it, true);
+		}
 
-                if(_is_equal(_table[idx].first, _empty_key)) {
-		        _allocator.construct(&_table[idx], obj);
-		        _size++;
-                        found = true;
-                }
-		return std::make_pair(end(), found);
+		return std::make_pair(end(), false);
 	}
 
 	iterator find(const Key &key) const
 	{
-		int idx = get_slot(key);
-		if (_is_equal(_table[idx].first, _empty_key))
+		if (_is_equal(_table[key].first, _empty_key) || !_is_equal(_table[key].first, key))
 			return end();
 
-		iterator it(&_table[idx]);
+		iterator it(&_table[key]);
 		return it;
 	}
 
@@ -144,25 +146,6 @@ class unordered_map
 		_end = nullptr;
 		_max_size = 0;
 		_size = 0;
-	}
-	size_t get_slot(const Key &key) const
-	{
-		size_t h = _hf(key);
-		size_t idx = h % (_max_size);
-
-		size_t step = hash2(h);
-
-		while (!_is_equal(_table[idx].first, key)
-		       && !_is_equal(_table[idx].first, _empty_key)) {
-			idx += step;
-			idx = idx % (_max_size);
-		}
-		return idx;
-	}
-	size_t hash2(const size_t &primary_hash) const
-	{
-		size_t h2 = (primary_hash * _max_size) % _max_size;
-		return h2 == 0 ? 1 : h2; // can't return 0 for step
 	}
 
       private:
