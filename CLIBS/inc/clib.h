@@ -8,5 +8,4 @@ void trim(char **pline);
 void paren_strip(char **pline);
 void chop_period(char *line);
 void rem_newline(char *);
-void tokenize_verse(const char *, char bufbook[32], char bufchap[32],
-		    char bufverse[32]);
+void tokenize_verse(const char *, char *, char *, char*);
