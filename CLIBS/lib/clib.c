@@ -78,38 +78,38 @@ void rem_newline(char *line)
 	}
 }
 
-void tokenize_verse(const char *verse, char bufbook[32], char bufchap[32],
-		    char bufverse[32])
+void tokenize_verse(const char *verse, char *bufbook, char *bufchap,
+		    char *bufverse)
 {
 	assert(verse);
 	char *dup = strdup(verse);
-        
-        char *p = dup;
-        while(*p != ':' && *p != '\0')
-                ++p;
-        
-        if(*p != ':') 
-                strcpy(bufverse, "");
-        else
-                strcpy(bufverse, p+1);
 
-        *p = '\0';
-        --p;
-       
-        assert(isdigit(*p));
+	char *p = dup;
+	while (*p != ':' && *p != '\0')
+		++p;
 
-        while(isdigit(*(p-1)))
-                --p;
+	if (*p != ':')
+		strcpy(bufverse, "");
+	else
+		strcpy(bufverse, p + 1);
+
+	*p = '\0';
+	--p;
+
+	assert(isdigit(*p));
+
+	while (isdigit(*(p - 1)))
+		--p;
 
 
-        if(!isspace(*(p-1)) && *(p-1) != '.')
-                puts(verse);
+	if (!isspace(*(p - 1)) && *(p - 1) != '.')
+		puts(verse);
 
-        assert(isspace(*(p-1)) || *(p-1) == '.');
+	assert(isspace(*(p - 1)) || *(p - 1) == '.');
 
-        strcpy(bufchap, p);
-        *(p-1) = '\0';
+	strcpy(bufchap, p);
+	*(p - 1) = '\0';
 
-        strcpy(bufbook, dup);
-        free(dup);
+	strcpy(bufbook, dup);
+	free(dup);
 }
