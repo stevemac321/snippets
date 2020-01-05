@@ -1,0 +1,41 @@
+Exercises
+-----------------------------------------------------------------------------
+Study:  Go through King, Nutshell, and Modern C to review C99, C11, C18, etc.
+Template: Create a template with GNU license, copyright, headers, main
+
+File naming conventions:
+-----------------------------------------------------------------------------
+King :               Kg.chapter.number
+K and R :            KR.chapter.number
+Modern C Challenges: MC.number
+
+TODO Inventory:
+-----------------------------------------------------------------------------
+Kg.5.1-2, 7-11;
+Kg.6.1-6, 8;
+Kg.7.4-5, 9-10, 12-15;
+Kg.8.ex.3-6, 11;
+Kg.8.1, 7, 9, 14-17;
+Kg.9.ex.2-6, 10-13, 17;
+Kg.9.1, 6-8;
+Kg.10.6-7;
+Kg.11.e.4, 6, 8;
+Kg.11.1;
+(TODO go thru King to find more later)
+-----------------------------------------------------------------------------
+
+KR.1.8-10, 12-14, 18-24
+2.3-9
+(TODO go thru K and R to find more later)
+-----------------------------------------------------------------------------
+
+MC.1, 9-11, 14-18;
+-----------------------------------------------------------------------------
+
+Completed: (format: filename in proper format, then a short description for
+searching.  The code should have a comment header with similar text.
+-----------------------------------------------------------------------------
+KR.1.8
+KR.1.9
+KR.1.10
+KR.1.12
