@@ -1,0 +1,4 @@
+syscall::*sock*:*
+{
+	trace(timestamp);
+}
